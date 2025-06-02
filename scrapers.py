@@ -3,65 +3,62 @@ from bs4 import BeautifulSoup
 
 def extrairDados(url):
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
-    
+
+    print(f"DEBUG: Tentando fazer requisição para: {url}")
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        
+        print("DEBUG: Requisição HTTP bem-sucedida. Status:", response.status_code)
+
         soup = BeautifulSoup(response.text, 'html.parser')
-        
-        nomeElemento = soup.find('span', id='productTitle')
-        if nomeElemento:
-            nome = nomeElemento.get_text(strip = True)
+
+        citacao_elemento = soup.find('span', class_='text')
+        if citacao_elemento:
+            citacao = citacao_elemento.get_text(strip=True)
+            print(f"DEBUG: Citação encontrada: {citacao}")
         else:
-            nome = "Nome não encontrado"
-            
-        precoElementoInteiro = soup.find('span', class_= 'a-price-whole')
-        preco = "Nome não encontrado"
-        
-        if precoElementoInteiro:
-            preco_str = precoElementoInteiro.get_text(strip = True)
-            
-            precoElementoDecimal = soup.find('span', class_= 'a-price-fraction')
-            if precoElementoDecimal:
-                preco_str += "," + precoElementoDecimal.get_text(strip = True)
-                
-            precoElementoSimbolo = soup.find('span', class_= 'a-price-symbol')
-            if precoElementoSimbolo:
-                preco = f"{precoElementoSimbolo.get_text(strip = True)}{preco_str}"
-            else:
-                preco = f"{preco_str}"
+            citacao = "Citação não encontrada"
+            print("DEBUG: Citação NÃO encontrada com o seletor 'text'.")
+
+        autor_elemento = soup.find('small', class_='author')
+        if autor_elemento:
+            autor = autor_elemento.get_text(strip=True)
+            print(f"DEBUG: Autor encontrado: {autor}")
         else:
-            precoElementoOffscreen = soup.find('span', class_= 'a-offscreen')
-            if precoElementoOffscreen:
-                preco = precoElementoOffscreen.get_text(strip = True)
-                
+            autor = "Autor não encontrado"
+            print("DEBUG: Autor NÃO encontrado com o seletor 'author'.")
+
         return {
-            'nome': nome,
-            'preco': preco,
+            'citacao': citacao,
+            'autor': autor,
             'url': url
         }
-        
+
+    except requests.exceptions.HTTPError as e:
+        print(f"ERRO HTTP ao acessar a URL {url}: {e.response.status_code} - {e.response.reason}")
+        print("DEBUG: Pode ser um bloqueio do site (menos provável para quotes.toscrape.com).")
+        return None
     except requests.exceptions.RequestException as e:
-        print(f"Erro ao acessar a URL {url}: {e}")
+        print(f"ERRO DE CONEXÃO ao acessar a URL {url}: {e}")
+        print("DEBUG: Verifique sua conexão com a internet ou se a URL está correta.")
         return None
     except Exception as e:
-        print(f"Ocorreu um erro inesperado: {e}")
+        print(f"OCORREU UM ERRO INESPERADO: {e}")
         return None
-    
+
 if __name__ == "__main__":
-    urlDoProduto = 'https://www.amazon.com.br/Pense-enrique%C3%A7a-Napoleon-Hill/dp/8582713725/'
-    
-    print(f"Tentando obter dados do produto {urlDoProduto}\n")
-    dadosProduto = extrairDados(urlDoProduto)
-    
-    if dadosProduto:
-        print("\n--- Dados do produto obtidos com sucesso ---")
-        print(f"Nome do produto: {dadosProduto['nome']}")
-        print(f"Preço do produto: {dadosProduto['preco']}")
-        print(f"URL do produto: {dadosProduto['url']}")
+    url_do_site_teste = 'http://quotes.toscrape.com/'
+
+    print(f"Iniciando tentativa de obter dados do site de teste: {url_do_site_teste}\n")
+    dados_extraidos = extrairDados(url_do_site_teste)
+
+    if dados_extraidos:
+        print("\n--- Dados Extraídos com Sucesso ---")
+        print(f"Citação: {dados_extraidos['citacao']}")
+        print(f"Autor: {dados_extraidos['autor']}")
+        print(f"URL: {dados_extraidos['url']}")
     else:
-        print("Não foi possível obter os dados do produto.")
-        
+        print("\n--- FALHA NA EXTRAÇÃO DE DADOS ---")
+        print("Não foi possível obter os dados. Verifique as mensagens de debug acima para mais detalhes.")
