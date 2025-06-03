@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Scraper Funcional</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"
+</head>
+<body>
+
+    <div class="container">
+        <h1>Web Scraper Funcional</h1>
+        <p>Insira uma URL (ex: http://quotes.toscrape.com/) para realizar a extração de dados e obter as citações.</p>
+
+        <form method="POST" action = "/">
+            <input type = "url" name="url_input" placeholder="Insira a URL" required value="{{ urlAnterior }}">
+            <button type = "submit">Raspar Dados</button>
+        </form>
+
+        {% if dados %}
+        <div class="resultados">
+            <h2>Resultados da extração</h2>
+            <p><strong>URL Raspada:</strong> {{ dados.url }}</p>
+            {% if dados.citacao and dados.citacao != "Citação não encontrada" %}
+            <p><strong>Citação:</strong> <em>{{ dados.citacao }}</em></p>
+            {% else %}
+            <p><strong>Citação:</strong>Não encontrada</p>
+            {% endif %}
+
+            {% if dados.autor and dados.autor != "Autor não encontrado" %}
+            <p><strong>Autor:</strong> {{ dados.autor }}</p>
+            {% else %}
+            <p><strong>Autor:</strong>Não encontrado</p>
+            {% endif %}
+        </div>
+
+    {% elif dados is not none %}
+    <div class = "resultados-erro">
+        <p>Ocorreu um erro ao extrair os dados. Verifique a URL ou o Terminal para mais detalhes</p>
+    </div>
+        {% endif %}
+    </div>
+</body>
+</html>
